@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#eef2ff">
+    <title>Income & Expense Tracker</title>
+    <style>
+
+/* Custome CSS */
+
+* {box-sizing: border-box;margin: 0;padding: 0;}
+body {font-family:Arial, sans-serif; background:linear-gradient( 135deg, #fdf2f8, #eef2ff, #ecfeff, #f0fdf4, #fff7ed ); background-size:400% 400%; animation:gradientMove 12s ease infinite; color:#222; padding:30px 15px; min-height:100vh;}
+
+@keyframes gradientMove {
+0% {background-position:0% 50%;}
+25% {background-position:50% 100%;}
+50% {background-position:100% 50%;}
+75% {background-position:50% 0%;}
+100% {background-position:0% 50%;}
+}
+
+.container {width:100%; max-width:850px; margin:0 auto;}
+.page-heading {text-align:center; margin-bottom:20px;}
+.page-heading h1 {font-size:30px; font-weight:900; color:#111827; font-family:ui-monospace; padding:20px 0 10px;}
+.balance-card {position:relative; overflow:hidden; background:linear-gradient( 135deg, #111827, #1e293b, #312e81 ); background-size:200% 200%; border-radius:20px; padding:32px 25px; text-align:center; margin-bottom:20px; color:#ffffff; box-shadow:0 15px 40px rgba( 15, 23, 42, 0.20 ), inset 0 1px 0 rgba( 255, 255, 255, 0.15 ); animation:balanceCardFloat 5s ease-in-out infinite, balanceGradient 8s ease infinite; isolation:isolate;}
+.balance-card::before {content:""; position:absolute; width:180px; height:180px; top:-90px; right:-60px; background:rgba( 129, 140, 248, 0.35 ); border-radius:50%; filter:blur(5px); z-index:-1; animation:balanceGlowOne 6s ease-in-out infinite;}
+.balance-card::after {content:""; position:absolute; width:150px; height:150px; bottom:-80px; left:-50px; background:rgba( 56, 189, 248, 0.25 ); border-radius:50%; filter:blur(5px); z-index:-1; animation:balanceGlowTwo 7s ease-in-out infinite;}
+.balance-card span {position:relative; display:block; font-size:14px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:rgba( 255, 255, 255, 0.72 ); margin-bottom:10px; z-index:2;}
+.balance-card h2 {position:relative; font-size:40px; font-weight:700; letter-spacing:-1px; color:#ffffff; text-shadow:0 4px 20px rgba( 255, 255, 255, 0.15 ); z-index:2; transition:transform 0.35s ease, opacity 0.35s ease;}
+@keyframes balanceCardFloat {
+0% {transform:translateY(0);}
+50% {transform:translateY(-4px);}
+100% {transform:translateY(0);}
+}
+
+@keyframes balanceGradient {
+0% {background-position:0% 50%;}
+50% {background-position:100% 50%;}
+100% {background-position:0% 50%;}
+}
+
+@keyframes balanceGlowOne {
+0% {transform:translate(0, 0) scale(1);}
+50% {transform:translate(-35px, 25px) scale(1.15);}
+100% {transform:translate(0, 0) scale(1);}
+}
+
+@keyframes balanceGlowTwo {
+0% {transform:translate(0, 0) scale(1);}
+50% {transform:translate(30px, -20px) scale(1.2);}
+100% {transform:translate(0, 0) scale(1);}
+}
+
+.balance-update {animation:balanceUpdate 0.6s ease;}
+
+@keyframes balanceUpdate {
+0% {transform:scale(1); opacity:0.6;}
+50% {transform:scale(1.08); opacity:1;}
+100% {transform:scale(1); opacity:1;}
+}
+.entry-card {background:rgba( 255, 255, 255, 0.92 ); border-radius:16px; padding:25px; margin-bottom:20px; box-shadow:0 8px 25px rgba( 0, 0, 0, 0.08 );}
+.entry-card h3 {margin-bottom:20px; font-size:21px; color:#111827;}
+.input-group {margin-bottom:16px;}
+.input-group label {display:block; font-size:14px; font-weight:600; color:#374151; margin-bottom:7px;}
+.input-group input {width:100%; padding:13px 14px; border:1px solid #d1d5db; border-radius:9px; font-size:15px; outline:none; transition:border-color 0.25s ease, box-shadow 0.25s ease;}
+.input-group input:focus {border-color:#6366f1; box-shadow:0 0 0 3px rgba( 99, 102, 241, 0.12 );}
+.save-button {width:100%; border:none; border-radius:9px; padding:14px 20px; background:linear-gradient( 135deg, #4f46e5, #6366f1 ); color:#ffffff; font-size:15px; font-weight:600; cursor:pointer; transition:transform 0.25s ease, box-shadow 0.25s ease;}
+.save-button:hover {transform:translateY(-2px); box-shadow:0 8px 20px rgba( 79, 70, 229, 0.25 );}
+.save-button:active {transform:translateY(0);}
+.today-result {display:grid; grid-template-columns:repeat(3, 1fr); gap:15px; margin-bottom:20px;}
+.result-box {background:rgba( 255, 255, 255, 0.92 ); border-radius:14px; padding:20px; text-align:center; box-shadow:0 6px 20px rgba( 0, 0, 0, 0.06 ); transition:transform 0.25s ease, box-shadow 0.25s ease;}
+.result-box:hover {transform:translateY(-3px); box-shadow:0 10px 25px rgba( 0, 0, 0, 0.09 );}
+.result-box span {display:block; font-size:13px; color:#6b7280; margin-bottom:8px;}
+.result-box strong {display:block; font-size:22px;}
+.income-result strong {color:#16a34a;}
+.expense-result strong {color:#dc2626;}
+.balance-result strong {color:#4f46e5;}
+.records-card {background:rgba( 255, 255, 255, 0.92 ); border-radius:16px; padding:25px; box-shadow:0 8px 25px rgba( 0, 0, 0, 0.08 );}
+.records-header {display:flex; align-items:center; justify-content:space-between; gap:15px; margin-bottom:20px;}
+.records-header h3 {font-size:21px; color:#111827; margin-bottom:5px;}
+.records-header p {font-size:13px; color:#6b7280;}
+.clear-button {border:none; border-radius:8px; padding:10px 15px; background:#fee2e2; color:#dc2626; font-size:13px; font-weight:600; cursor:pointer; transition:background 0.25s ease, transform 0.25s ease;}
+.clear-button:hover {background:#fecaca; transform:translateY(-1px);}
+.table-wrapper {width:100%; overflow-x:auto;}
+table {width:100%; border-collapse:collapse; min-width:650px;}
+thead {background:#f8fafc;}
+th {padding:13px 12px; text-align:left; font-size:13px; color:#475569; font-weight:600; border-bottom:1px solid #e5e7eb;}
+td {padding:13px 12px; font-size:14px; color:#374151; border-bottom:1px solid #eef2f7;}
+tbody tr {transition:background 0.2s ease;}
+tbody tr:hover {background:#f8fafc;}
+.delete-button {border:none; background:#fee2e2; color:#dc2626; border-radius:7px; padding:7px 11px; font-size:12px; font-weight:600; cursor:pointer; transition:background 0.25s ease, transform 0.25s ease;}
+.delete-button:hover {background:#fecaca; transform:translateY(-1px);}
+.empty-records {text-align:center; padding:25px 10px; color:#9ca3af; font-size:14px;}
+.notification {position:fixed; top:50%; left:50%; width:calc(100% - 40px); max-width:420px; display:flex; align-items:center; gap:14px; padding:18px; background:rgba( 255, 255, 255, 0.97 ); border:1px solid rgba( 255, 255, 255, 0.8 ); border-radius:16px; box-shadow:0 20px 60px rgba( 15, 23, 42, 0.20 ); backdrop-filter:blur(12px); transform:translate(-50%, -50%) scale(0.85); opacity:0; visibility:hidden; pointer-events:none; transition:opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease; z-index:99999;}
+.notification.show {opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%, -50%) scale(1);}
+.notification-icon {width:42px; height:42px; min-width:42px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:#dcfce7; color:#16a34a; font-size:20px; font-weight:700;}
+.notification-content {flex:1;}
+.notification-content strong {display:block; margin-bottom:4px; font-size:15px; color:#111827;}
+.notification-content p {margin:0; font-size:13px; line-height:1.5; color:#6b7280;}
+.notification-close {width:30px; height:30px; border:none; background:transparent; color:#9ca3af; font-size:24px; line-height:1; cursor:pointer; border-radius:50%; transition:background 0.2s ease, color 0.2s ease;}
+.notification-close:hover {background:#f1f5f9; color:#374151;}
+.notification.error.notification-icon {background:#fee2e2; color:#dc2626;}
+.notification.warning.notification-icon {background:#fef3c7; color:#d97706;}
+.modal-overlay {position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba( 15, 23, 42, 0.55 ); backdrop-filter:blur(5px); opacity:0; visibility:hidden; pointer-events:none; transition:opacity 0.25s ease, visibility 0.25s ease; z-index:100000;}
+.modal-overlay.show {opacity:1; visibility:visible; pointer-events:auto;}
+.confirm-modal {width:calc(100% - 30px); max-width:400px; background:#ffffff; border-radius:18px; padding:28px 25px; text-align:center; box-shadow:0 25px 60px rgba( 0, 0, 0, 0.20 ); transform:scale(0.92); transition:transform 0.25s ease;}
+.modal-overlay.show.confirm-modal {transform:scale(1);}
+.confirm-icon {width:52px; height:52px; display:flex; align-items:center; justify-content:center; margin:0 auto 15px; border-radius:50%; background:#fef3c7; color:#d97706; font-size:24px; font-weight:700;}
+.confirm-modal h3 {font-size:20px; color:#111827; margin-bottom:10px;}
+.confirm-modal p {font-size:14px; line-height:1.6; color:#6b7280; margin-bottom:22px;}
+.modal-buttons {display:flex; justify-content:center; gap:10px;}
+.modal-buttons button {border:none; border-radius:8px; padding:11px 22px; min-width:100px; font-size:14px; font-weight:600; cursor:pointer; transition:transform 0.2s ease, background 0.2s ease;}
+.modal-buttons button:hover {transform:translateY(-1px);}
+.cancel-button {background:#f1f5f9; color:#475569;}
+.cancel-button:hover {background:#e2e8f0;}
+.confirm-button {background:#dc2626; color:#ffffff;}
+.confirm-button:hover {background:#b91c1c;}
+
+/* Responsive CSS */
+
+@media (max-width: 767px) {
+    body {padding:20px 12px;}
+    .today-result {grid-template-columns:1fr;}
+    .records-header {align-items:flex-start;}
+}
+
+@media (max-width: 575px) {
+    .balance-card {padding:28px 18px; border-radius:17px;}
+    .balance-card h2 {font-size:30px;}
+    .entry-card, .records-card {padding:20px; border-radius:14px;}
+    .records-header {flex-direction:column;}
+    .clear-button {width:100%;}
+    .notification {width:calc(100% - 30px); padding:16px; border-radius:14px;}
+    .notification-icon {width:38px; height:38px; min-width:38px; font-size:18px;}
+    .modal-buttons {flex-direction:column-reverse;}
+    .modal-buttons button {width:100%;}
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-heading">
+           <h1>Daily Income &amp; Expense Tracker</h1>
+        </div>
+        <!-- Current Balance -->
+        <div class="balance-card">
+           <span>Current Balance</span>
+           <h2 id="currentBalance">+ ₹0.00</h2>
+        </div>
+        <!-- Today's Entry -->
+        <div class="entry-card">
+           <h3>Record Today's Earning</h3>
+           <div class="input-group">
+              <label for="income"> Today's Earning </label>
+              <input type="number" id="income" placeholder="Enter earning amount" min="0" step="0.01" />
+           </div>
+           <div class="input-group">
+              <label for="expense"> Today's Expense </label>
+              <input type="number" id="expense" placeholder="Enter expense amount" min="0" step="0.01" />
+           </div>
+           <button type="button" id="saveButton" class="save-button">Save Today's Record</button>
+        </div>
+        <!-- Today's Stats -->
+        <div class="today-result">
+           <div class="result-box income-result">
+              <span> Today's Income </span>
+              <strong id="todayIncome"> ₹0.00 </strong>
+           </div>
+           <div class="result-box expense-result">
+              <span> Today's Expense </span>
+              <strong id="todayExpense"> ₹0.00 </strong>
+           </div>
+           <div class="result-box balance-result">
+              <span> Today's Balance </span>
+              <strong id="todayBalance"> ₹0.00 </strong>
+           </div>
+        </div>
+        <!-- Daily Records -->
+        <div class="records-card">
+           <div class="records-header">
+              <div>
+                 <h3>Daily Records</h3>
+                 <p>Your saved daily income and expense records</p>
+              </div>
+              <button type="button" id="clearAllButton" class="clear-button">Clear All</button>
+           </div>
+           <div class="table-wrapper">
+              <table>
+                 <thead>
+                    <tr>
+                       <th>Date</th>
+                       <th>Income</th>
+                       <th>Expense</th>
+                       <th>Balance</th>
+                       <th>Action</th>
+                    </tr>
+                 </thead>
+                 <tbody id="recordsTableBody"></tbody>
+              </table>
+           </div>
+           <div id="emptyRecords" class="empty-records">No records available yet.</div>
+        </div>
+    </div>
+    <!-- Center Notification -->
+    <div id="notification" class="notification">
+        <div id="notificationIcon" class="notification-icon">✓</div>
+        <div class="notification-content">
+           <strong id="notificationTitle"> Success </strong>
+           <p id="notificationMessage">Record saved successfully.</p>
+        </div>
+        <button type="button" id="notificationClose" class="notification-close">×</button>
+    </div>
+    <!-- Confirmation Modal -->
+    <div id="confirmOverlay" class="modal-overlay">
+        <div class="confirm-modal">
+           <div class="confirm-icon">?</div>
+           <h3 id="confirmTitle">Confirm Action</h3>
+           <p id="confirmMessage">Are you sure?</p>
+           <div class="modal-buttons">
+              <button type="button" id="confirmCancel" class="cancel-button">Cancel</button>
+              <button type="button" id="confirmOk" class="confirm-button">OK</button>
+           </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        const incomeInput =
+            document.getElementById("income");
+        const expenseInput =
+            document.getElementById("expense");
+        const saveButton =
+            document.getElementById("saveButton");
+        const currentBalanceElement =
+            document.getElementById(
+                "currentBalance"
+            );
+        const todayIncomeElement =
+            document.getElementById(
+                "todayIncome"
+            );
+        const todayExpenseElement =
+            document.getElementById(
+                "todayExpense"
+            );
+        const todayBalanceElement =
+            document.getElementById(
+                "todayBalance"
+            );
+        const recordsTableBody =
+            document.getElementById(
+                "recordsTableBody"
+            );
+        const emptyRecords =
+            document.getElementById(
+                "emptyRecords"
+            );
+        const clearAllButton =
+            document.getElementById(
+                "clearAllButton"
+            );
+        const notification =
+            document.getElementById(
+                "notification"
+            );
+        const notificationIcon =
+            document.getElementById(
+                "notificationIcon"
+            );
+        const notificationTitle =
+            document.getElementById(
+                "notificationTitle"
+            );
+        const notificationMessage =
+            document.getElementById(
+                "notificationMessage"
+            );
+        const notificationClose =
+            document.getElementById(
+                "notificationClose"
+            );
+        let notificationTimer = null;
+        const confirmOverlay =
+            document.getElementById(
+                "confirmOverlay"
+            );
+        const confirmTitle =
+            document.getElementById(
+                "confirmTitle"
+            );
+        const confirmMessage =
+            document.getElementById(
+                "confirmMessage"
+            );
+        const confirmCancel =
+            document.getElementById(
+                "confirmCancel"
+            );
+        const confirmOk =
+            document.getElementById(
+                "confirmOk"
+            );
+        let confirmCallback = null;
+        let records =
+            JSON.parse(
+                localStorage.getItem(
+                    "incomeExpenseRecords"
+                )
+            ) || [];
+        function getTodayDate() {
+            const today = new Date();
+            const year =
+                today.getFullYear();
+            const month =
+                String(
+                    today.getMonth() + 1
+                ).padStart(2, "0");
+            const day =
+                String(
+                    today.getDate()
+                ).padStart(2, "0");
+            return (
+                year +
+                "-" +
+                month +
+                "-" +
+                day
+            );
+        }
+        function removeOldRecords() {
+            const today =
+                new Date(
+                    getTodayDate() +
+                    "T00:00:00"
+                );
+            const oldestAllowedDate =
+                new Date(today);
+            oldestAllowedDate.setDate(
+                today.getDate() - 6
+            );
+            const filteredRecords =
+                records.filter(
+                    function (record) {
+                        const recordDate =
+                            new Date(
+                                record.date +
+                                "T00:00:00"
+                            );
+                        return (
+                            recordDate >=
+                            oldestAllowedDate &&
+                            recordDate <= today
+                        );
+                    }
+                );
+            const recordsChanged =
+                filteredRecords.length !==
+                records.length;
+            records =
+                filteredRecords;
+            if (recordsChanged) {
+                saveRecords();
+            }
+        }
+        function formatCurrency(
+            value
+        ) {
+            return new Intl.NumberFormat(
+                "en-IN",
+                {
+                    style: "currency",
+                    currency: "INR",
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            ).format(value);
+        }
+        function formatBalance(
+            value
+        ) {
+            if (value >= 0) {
+                return (
+                    "+ " +
+                    formatCurrency(value)
+                );
+            }
+            return (
+                "- " +
+                formatCurrency(
+                    Math.abs(value)
+                )
+            );
+        }
+        function saveRecords() {
+            localStorage.setItem(
+                "incomeExpenseRecords",
+                JSON.stringify(records)
+            );
+        }
+        function showNotification(
+            message,
+            type,
+            title
+        ) {
+            clearTimeout(
+                notificationTimer
+            );
+            notification.classList.remove(
+                "error",
+                "warning",
+                "show"
+            );
+            if (type === "error") {
+                notificationIcon.textContent =
+                    "×";
+            } else if (
+                type === "warning"
+            ) {
+                notificationIcon.textContent =
+                    "!";
+            } else {
+                notificationIcon.textContent =
+                    "✓";
+            }
+            notificationTitle.textContent =
+                title || "Success";
+            notificationMessage.textContent =
+                message;
+            if (
+                type === "error" ||
+                type === "warning"
+            ) {
+                notification.classList.add(
+                    type
+                );
+            }
+            void notification.offsetWidth;
+            notification.classList.add(
+                "show"
+            );
+            notificationTimer =
+                setTimeout(
+                    function () {
+                        hideNotification();
+                    },
+                    3000
+                );
+        }
+        function hideNotification() {
+            notification.classList.remove(
+                "show"
+            );
+        }
+        notificationClose.addEventListener(
+            "click",
+            function () {
+                hideNotification();
+            }
+        );
+        function showConfirm(
+            title,
+            message,
+            callback
+        ) {
+            confirmTitle.textContent =
+                title;
+            confirmMessage.textContent =
+                message;
+            confirmCallback =
+                callback;
+            confirmOverlay.classList.add(
+                "show"
+            );
+        }
+        function closeConfirm() {
+            confirmOverlay.classList.remove(
+                "show"
+            );
+            confirmCallback = null;
+        }
+        confirmCancel.addEventListener(
+            "click",
+            function () {
+                closeConfirm();
+            }
+        );
+        confirmOk.addEventListener(
+            "click",
+            function () {
+                const callback =
+                    confirmCallback;
+                closeConfirm();
+                if (
+                    typeof callback ===
+                    "function"
+                ) {
+                    callback();
+                }
+            }
+        );
+        confirmOverlay.addEventListener(
+            "click",
+            function (event) {
+                if (
+                    event.target ===
+                    confirmOverlay
+                ) {
+                    closeConfirm();
+                }
+            }
+        );
+        function getCurrentBalance() {
+            return records.reduce(
+                function (
+                    total,
+                    record
+                ) {
+                    return (
+                        total +
+                        Number(
+                            record.income
+                        ) -
+                        Number(
+                            record.expense
+                        )
+                    );
+                },
+                0
+            );
+        }
+        function updateCurrentBalance() {
+            const balance =
+                getCurrentBalance();
+            currentBalanceElement.classList.remove(
+                "balance-update"
+            );
+            void currentBalanceElement.offsetWidth;
+            currentBalanceElement.textContent =
+                formatBalance(balance);
+            currentBalanceElement.classList.add(
+                "balance-update"
+            );
+        }
+        function updateTodayResult() {
+            const todayDate =
+                getTodayDate();
+            const todayRecord =
+                records.find(
+                    function (record) {
+                        return (
+                            record.date ===
+                            todayDate
+                        );
+                    }
+                );
+            if (!todayRecord) {
+                todayIncomeElement.textContent =
+                    formatCurrency(0);
+                todayExpenseElement.textContent =
+                    formatCurrency(0);
+                todayBalanceElement.textContent =
+                    formatCurrency(0);
+                return;
+            }
+            const income =
+                Number(
+                    todayRecord.income
+                );
+            const expense =
+                Number(
+                    todayRecord.expense
+                );
+            const balance =
+                income - expense;
+            todayIncomeElement.textContent =
+                formatCurrency(income);
+            todayExpenseElement.textContent =
+                formatCurrency(expense);
+            todayBalanceElement.textContent =
+                formatCurrency(balance);
+        }
+        function formatDate(
+            dateString
+        ) {
+            const date =
+                new Date(
+                    dateString +
+                    "T00:00:00"
+                );
+            return date.toLocaleDateString(
+                "en-IN",
+                {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                }
+            );
+        }
+        function displayRecords() {
+            recordsTableBody.innerHTML =
+                "";
+            if (
+                records.length === 0
+            ) {
+                emptyRecords.style.display =
+                    "block";
+                return;
+            }
+            emptyRecords.style.display =
+                "none";
+            const sortedRecords =
+                [...records].sort(
+                    function (a, b) {
+                        return (
+                            b.date.localeCompare(
+                                a.date
+                            )
+                        );
+                    }
+                );
+            sortedRecords.forEach(
+                function (record) {
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+                    const dateCell =
+                        document.createElement(
+                            "td"
+                        );
+                    dateCell.textContent =
+                        formatDate(
+                            record.date
+                        );
+                    const incomeCell =
+                        document.createElement(
+                            "td"
+                        );
+                    incomeCell.textContent =
+                        formatCurrency(
+                            Number(
+                                record.income
+                            )
+                        );
+                    const expenseCell =
+                        document.createElement(
+                            "td"
+                        );
+                    expenseCell.textContent =
+                        formatCurrency(
+                            Number(
+                                record.expense
+                            )
+                        );
+                    const balanceCell =
+                        document.createElement(
+                            "td"
+                        );
+                    const dailyBalance =
+                        Number(
+                            record.income
+                        ) -
+                        Number(
+                            record.expense
+                        );
+                    balanceCell.textContent =
+                        formatCurrency(
+                            dailyBalance
+                        );
+                    const actionCell =
+                        document.createElement(
+                            "td"
+                        );
+                    const deleteButton =
+                        document.createElement(
+                            "button"
+                        );
+                    deleteButton.type =
+                        "button";
+                    deleteButton.className =
+                        "delete-button";
+                    deleteButton.textContent =
+                        "Delete";
+                    deleteButton.addEventListener(
+                        "click",
+                        function () {
+                            showConfirm(
+                                "Delete Record",
+                                "Are you sure you want to delete this record?",
+                                function () {
+                                    deleteRecord(
+                                        record.id
+                                    );
+                                }
+                            );
+                        }
+                    );
+                    actionCell.appendChild(
+                        deleteButton
+                    );
+                    row.appendChild(
+                        dateCell
+                    );
+                    row.appendChild(
+                        incomeCell
+                    );
+                    row.appendChild(
+                        expenseCell
+                    );
+                    row.appendChild(
+                        balanceCell
+                    );
+                    row.appendChild(
+                        actionCell
+                    );
+                    recordsTableBody.appendChild(
+                        row
+                    );
+                }
+            );
+        }
+        saveButton.addEventListener(
+            "click",
+            function () {
+                const income =
+                    parseFloat(
+                        incomeInput.value
+                    ) || 0;
+                const expense =
+                    parseFloat(
+                        expenseInput.value
+                    ) || 0;
+                if (
+                    income <= 0 &&
+                    expense <= 0
+                ) {
+                    showNotification(
+                        "Please enter an earning or expense amount.",
+                        "error",
+                        "Invalid Amount"
+                    );
+                    return;
+                }
+                if (
+                    income < 0 ||
+                    expense < 0
+                ) {
+                    showNotification(
+                        "Amount cannot be negative.",
+                        "error",
+                        "Invalid Amount"
+                    );
+                    return;
+                }
+                const todayDate =
+                    getTodayDate();
+                const todayRecordExists =
+                    records.some(
+                        function (record) {
+                            return (
+                                record.date ===
+                                todayDate
+                            );
+                        }
+                    );
+                if (
+                    todayRecordExists
+                ) {
+                    showNotification(
+                        "Today's record already exists. Delete today's record before entering a corrected value.",
+                        "warning",
+                        "Record Already Exists"
+                    );
+                    return;
+                }
+                const newRecord = {
+                    id:
+                        Date.now(),
+
+                    date:
+                        todayDate,
+
+                    income:
+                        income,
+
+                    expense:
+                        expense
+                };
+                records.push(
+                    newRecord
+                );
+                removeOldRecords();
+                saveRecords();
+                displayRecords();
+                updateCurrentBalance();
+                updateTodayResult();
+                incomeInput.value =
+                    "";
+                expenseInput.value =
+                    "";
+                showNotification(
+                    "Today's income and expense have been saved successfully.",
+                    "success",
+                    "Record Saved"
+                );
+            }
+        );
+        function deleteRecord(
+            id
+        ) {
+            records =
+                records.filter(
+                    function (record) {
+                        return (
+                            record.id !== id
+                        );
+                    }
+                );
+            saveRecords();
+            displayRecords();
+            updateCurrentBalance();
+            updateTodayResult();
+            showNotification(
+                "The record has been deleted successfully.",
+                "success",
+                "Record Deleted"
+            );
+        }
+        clearAllButton.addEventListener(
+            "click",
+            function () {
+                if (
+                    records.length === 0
+                ) {
+                    showNotification(
+                        "There are no records to clear.",
+                        "warning",
+                        "No Records"
+                    );
+                    return;
+                }
+                showConfirm(
+                    "Clear All Records",
+                    "Are you sure you want to delete all saved records? This action cannot be undone.",
+                    function () {
+                        records = [];
+                        localStorage.removeItem(
+                            "incomeExpenseRecords"
+                        );
+                        incomeInput.value =
+                            "";
+                        expenseInput.value =
+                            "";
+                        displayRecords();
+                        updateCurrentBalance();
+                        updateTodayResult();
+                        showNotification(
+                            "All saved records have been deleted.",
+                            "success",
+                            "Records Cleared"
+                        );
+                    }
+                );
+            }
+        );
+        displayRecords();
+        updateCurrentBalance();
+        updateTodayResult();
+    }
+);
+    </script>
+</body>
+</html>
